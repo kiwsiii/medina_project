@@ -66,3 +66,48 @@ tabsParent.onclick = (event) => {
        })
     }
 }
+
+
+const usdInput = document.querySelector('#usd');
+const somInput = document.querySelector('#som');
+const euroInput = document.querySelector('#eur');
+
+const converter = (input, targetInputs) => {
+    input.oninput = () => {
+        const request = new XMLHttpRequest();
+        request.open('GET', '../data/converter.json');
+        request.setRequestHeader('content-type', 'application/json');
+        request.send();
+
+        request.onload = () => {
+            const data = JSON.parse(request.response);
+
+            if (input.value === '') {
+                targetInputs.forEach(target => (target.value = ''));
+                return;
+            }
+
+            const value = parseFloat(input.value);
+            if (isNaN(value)) return;
+
+            // Логика расчётов
+            if (input.id === 'som') {
+                targetInputs[0].value = (value / data.usd).toFixed(2); // USD
+                targetInputs[1].value = (value / data.eur).toFixed(2); // EUR
+            }
+            if (input.id === 'usd') {
+                targetInputs[0].value = (value * data.usd).toFixed(2); // SOM
+                targetInputs[1].value = (value * data.usd / data.eur).toFixed(2); // EUR
+            }
+            if (input.id === 'eur') {
+                targetInputs[0].value = (value * data.eur).toFixed(2); // SOM
+                targetInputs[1].value = (value * data.eur / data.usd).toFixed(2); // USD
+            }
+        };
+    };
+};
+
+// Настраиваем конвертеры
+converter(somInput, [usdInput, euroInput]);
+converter(usdInput, [somInput, euroInput]);
+converter(euroInput, [somInput, usdInput]);
